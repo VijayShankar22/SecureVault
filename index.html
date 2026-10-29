@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SecureVault — Offline AES-256 File &amp; Text Encryption</title>
+<meta name="description" content="SecureVault is a 100% offline, client-side AES-256-GCM file, folder, and text encryption tool. No servers, no accounts, no telemetry — everything happens in your browser.">
+<meta name="color-scheme" content="dark light">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none';">
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<a class="skip-link" href="#main-content">Skip to main content</a>
+
+<div id="sidebar-backdrop" class="sidebar-backdrop"></div>
+
+<div class="app-shell">
+
+  <header class="app-header">
+    <button id="btn-menu-toggle" type="button" class="btn-icon-plain nav-toggle" aria-label="Open navigation menu" aria-controls="sidebar-nav" aria-expanded="false">
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true">
+        <rect x="5" y="11" width="14" height="9" rx="2"/>
+        <path d="M8 11V7a4 4 0 0 1 8 0v4"/>
+        <circle cx="12" cy="15.4" r="1.15" fill="currentColor" stroke="none"/>
+      </svg>
+      <span class="brand-name">SecureVault</span>
+    </div>
+
+    <div class="header-right">
+      <span class="offline-badge">
+        <span class="offline-dot" aria-hidden="true"></span>
+        100% Offline
+      </span>
+
+      <div id="header-key-chip" class="key-chip is-empty">
+        <svg class="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="15" r="3.4"/><path d="M10.4 12.4 19 3.8"/><path d="M15.6 7.8 18 10.2"/><path d="M13.1 6.4 15.1 8.4"/></svg>
+        <span id="header-key-chip-label">No key loaded</span>
+      </div>
+
+      <button id="btn-theme-toggle" type="button" class="btn-icon-plain" aria-label="Toggle dark and light theme">
+        <span id="btn-theme-toggle-icon"></span>
+      </button>
+    </div>
+  </header>
+
+  <div class="app-body">
+
+    <nav id="sidebar-nav" class="sidebar" aria-label="Main navigation" role="tablist" aria-orientation="vertical">
+      <button class="nav-tab" id="navtab-dashboard" data-tab="dashboard" role="tab" aria-selected="true" aria-controls="tab-dashboard" tabindex="0">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1.2"/><rect x="13" y="4" width="7" height="4.5" rx="1.2"/><rect x="13" y="10.5" width="7" height="9" rx="1.2"/><rect x="4" y="13" width="7" height="6.5" rx="1.2"/></svg>
+        <span>Dashboard</span>
+      </button>
+      <button class="nav-tab" id="navtab-files" data-tab="files" role="tab" aria-selected="false" aria-controls="tab-files" tabindex="-1">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3.5h6.5l3.5 3.5V20a.5.5 0 0 1-.5.5H7A.5.5 0 0 1 6.5 20V4A.5.5 0 0 1 7 3.5z"/><path d="M13.5 3.5V7H17"/></svg>
+        <span>File Encryption</span>
+      </button>
+      <button class="nav-tab" id="navtab-folder" data-tab="folder" role="tab" aria-selected="false" aria-controls="tab-folder" tabindex="-1">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7.2A1.7 1.7 0 0 1 5.7 5.5h3.7l2 2H18.3A1.7 1.7 0 0 1 20 9.2v7.6a1.7 1.7 0 0 1-1.7 1.7H5.7A1.7 1.7 0 0 1 4 16.8V7.2z"/></svg>
+        <span>Folder Encryption</span>
+      </button>
+      <button class="nav-tab" id="navtab-text" data-tab="text" role="tab" aria-selected="false" aria-controls="tab-text" tabindex="-1">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4.8h12"/><path d="M12 4.8V19"/><path d="M9 19h6"/></svg>
+        <span>Text Encryption</span>
+      </button>
+      <button class="nav-tab" id="navtab-keys" data-tab="keys" role="tab" aria-selected="false" aria-controls="tab-keys" tabindex="-1">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="15" r="3.4"/><path d="M10.4 12.4 19 3.8"/><path d="M15.6 7.8 18 10.2"/><path d="M13.1 6.4 15.1 8.4"/></svg>
+        <span>Key Manager</span>
+      </button>
+      <button class="nav-tab" id="navtab-settings" data-tab="settings" role="tab" aria-selected="false" aria-controls="tab-settings" tabindex="-1">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="2.6"/><path d="M12 4v2.4M12 17.6V20M20 12h-2.4M6.4 12H4M17 7l-1.7 1.7M8.7 15.3 7 17M17 17l-1.7-1.7M8.7 8.7 7 7"/></svg>
+        <span>Settings</span>
+      </button>
+      <button class="nav-tab" id="navtab-about" data-tab="about" role="tab" aria-selected="false" aria-controls="tab-about" tabindex="-1">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.3"/><path d="M12 11v5.3"/><circle cx="12" cy="7.8" r="0.95" fill="currentColor" stroke="none"/></svg>
+        <span>About</span>
+      </button>
+
+      <div class="sidebar-footer">
+        <svg class="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.2 19 6v5c0 4.5-3 7.4-7 8.8-4-1.4-7-4.3-7-8.8V6l7-2.8z"/><path d="M9 12l2 2 4-4.2"/></svg>
+        <span>AES-256-GCM · <span data-app-version>1.0.0</span></span>
+      </div>
+    </nav>
+
+    <main id="main-content" class="main-content">
+
+      <!-- ============================= DASHBOARD ============================= -->
+      <section id="tab-dashboard" data-tabpanel="dashboard" class="tab-panel" role="tabpanel" aria-labelledby="navtab-dashboard">
+        <div class="panel-header">
+          <h1>Dashboard</h1>
+          <p class="panel-subtitle">Everything below happens on this device. Nothing is ever uploaded.</p>
+        </div>
+
+        <div class="dashboard-grid">
+          <div class="stat-card">
+            <svg class="icon stat-card-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+            <span class="stat-card-value" id="stat-files-encrypted">0</span>
+            <span class="stat-card-label">Files encrypted</span>
+          </div>
+          <div class="stat-card">
+            <svg class="icon stat-card-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.2-2.6"/></svg>
+            <span class="stat-card-value" id="stat-files-decrypted">0</span>
+            <span class="stat-card-label">Files decrypted</span>
+          </div>
+          <div class="stat-card">
+            <svg class="icon stat-card-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7.2A1.7 1.7 0 0 1 5.7 5.5h3.7l2 2H18.3A1.7 1.7 0 0 1 20 9.2v7.6a1.7 1.7 0 0 1-1.7 1.7H5.7A1.7 1.7 0 0 1 4 16.8V7.2z"/></svg>
+            <span class="stat-card-value" id="stat-folders-total">0</span>
+            <span class="stat-card-label">Folders processed</span>
+          </div>
+          <div class="stat-card">
+            <svg class="icon stat-card-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.2 19 6v5c0 4.5-3 7.4-7 8.8-4-1.4-7-4.3-7-8.8V6l7-2.8z"/><path d="M9 12l2 2 4-4.2"/></svg>
+            <span class="stat-card-value" id="stat-bytes-total">0 Bytes</span>
+            <span class="stat-card-label">Data processed</span>
+          </div>
+          <div class="stat-card">
+            <svg class="icon stat-card-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="15" r="3.4"/><path d="M10.4 12.4 19 3.8"/><path d="M15.6 7.8 18 10.2"/><path d="M13.1 6.4 15.1 8.4"/></svg>
+            <span class="stat-card-value" id="stat-key-status">None loaded</span>
+            <span class="stat-card-label">Current key</span>
+          </div>
+        </div>
+
+        <h2 class="section-heading">Quick actions</h2>
+        <div class="quick-actions">
+          <button type="button" class="quick-action-card" data-goto-tab="files">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+            <span>Encrypt a file</span>
+          </button>
+          <button type="button" class="quick-action-card" data-goto-tab="folder">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7.2A1.7 1.7 0 0 1 5.7 5.5h3.7l2 2H18.3A1.7 1.7 0 0 1 20 9.2v7.6a1.7 1.7 0 0 1-1.7 1.7H5.7A1.7 1.7 0 0 1 4 16.8V7.2z"/></svg>
+            <span>Encrypt a folder</span>
+          </button>
+          <button type="button" class="quick-action-card" data-goto-tab="text">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4.8h12"/><path d="M12 4.8V19"/><path d="M9 19h6"/></svg>
+            <span>Encrypt text</span>
+          </button>
+          <button type="button" class="quick-action-card" data-goto-tab="keys">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="15" r="3.4"/><path d="M10.4 12.4 19 3.8"/><path d="M15.6 7.8 18 10.2"/><path d="M13.1 6.4 15.1 8.4"/></svg>
+            <span>Manage keys</span>
+          </button>
+        </div>
+
+        <div class="dashboard-columns">
+          <div class="card">
+            <h2 class="section-heading">Recent activity</h2>
+            <ul id="activity-list" class="activity-list" hidden></ul>
+            <p id="activity-empty" class="empty-hint">Nothing yet — encrypt or decrypt something to see it here.</p>
+          </div>
+          <div class="card">
+            <h2 class="section-heading">Security status</h2>
+            <ul class="status-list">
+              <li><svg class="icon icon-sm status-ok" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.3"/><path d="M8.3 12.3l2.4 2.4 4.7-5.3"/></svg> Algorithm: AES-256-GCM</li>
+              <li><svg class="icon icon-sm status-ok" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.3"/><path d="M8.3 12.3l2.4 2.4 4.7-5.3"/></svg> Web Crypto API: available</li>
+              <li><svg class="icon icon-sm status-ok" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.3"/><path d="M8.3 12.3l2.4 2.4 4.7-5.3"/></svg> Network requests made: none</li>
+              <li><svg class="icon icon-sm status-ok" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.3"/><path d="M8.3 12.3l2.4 2.4 4.7-5.3"/></svg> Container format: v<span data-format-version>1</span></li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========================== FILE ENCRYPTION ========================== -->
+      <section id="tab-files" data-tabpanel="files" class="tab-panel" role="tabpanel" aria-labelledby="navtab-files" hidden>
+        <div class="panel-header">
+          <h1>File Encryption</h1>
+          <p class="panel-subtitle">Drop in files to encrypt them, or drop in <code>.enc</code> files to decrypt them. Any file type, any size.</p>
+        </div>
+
+        <div id="file-dropzone" class="dropzone" tabindex="0" role="button" aria-label="Drop files here, or press Enter to browse for files">
+          <svg class="icon dropzone-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20V9"/><path d="M7.5 12.5 12 8l4.5 4.5"/><path d="M5 19.5h14"/></svg>
+          <p class="dropzone-title">Drag &amp; drop files here</p>
+          <p class="dropzone-subtitle">or</p>
+          <button id="btn-browse-files" type="button" class="btn btn-primary">Browse files</button>
+          <input id="input-browse-files" type="file" multiple hidden>
+        </div>
+
+        <div class="file-toolbar">
+          <div class="search-field">
+            <svg class="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.3" cy="10.3" r="6"/><path d="M15 15l4.7 4.7"/></svg>
+            <input id="file-search" type="search" placeholder="Filter by filename…" aria-label="Filter files by name">
+          </div>
+          <span id="file-count-label" class="file-count-label"></span>
+          <div class="file-toolbar-actions">
+            <button id="btn-encrypt-all" type="button" class="btn btn-secondary" hidden>Encrypt all</button>
+            <button id="btn-decrypt-all" type="button" class="btn btn-secondary" hidden>Decrypt all</button>
+            <button id="btn-clear-files" type="button" class="btn btn-ghost btn-danger-ghost" hidden>Clear list</button>
+          </div>
+        </div>
+
+        <div id="file-list" class="file-list" hidden></div>
+        <p id="file-list-empty" class="empty-hint">No files yet. Drag some in above, or click "Browse files".</p>
+      </section>
+
+      <!-- ========================== FOLDER ENCRYPTION ========================= -->
+      <section id="tab-folder" data-tabpanel="folder" class="tab-panel" role="tabpanel" aria-labelledby="navtab-folder" hidden>
+        <div class="panel-header">
+          <h1>Folder Encryption</h1>
+          <p class="panel-subtitle">SecureVault packs your folder into a standard .zip, then encrypts the whole archive with AES-256-GCM.</p>
+        </div>
+
+        <div class="folder-columns">
+          <div class="card">
+            <h2 class="section-heading">Encrypt a folder</h2>
+            <button id="btn-pick-folder" type="button" class="btn btn-primary">
+              <svg class="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7.2A1.7 1.7 0 0 1 5.7 5.5h3.7l2 2H18.3A1.7 1.7 0 0 1 20 9.2v7.6a1.7 1.7 0 0 1-1.7 1.7H5.7A1.7 1.7 0 0 1 4 16.8V7.2z"/></svg>
+              Choose folder…
+            </button>
+            <input id="input-pick-folder" type="file" webkitdirectory directory multiple hidden>
+
+            <div id="folder-summary" class="folder-summary" hidden>
+              <div id="folder-summary-name" class="folder-summary-name"></div>
+              <div id="folder-summary-meta" class="folder-summary-meta"></div>
+            </div>
+
+            <button id="btn-encrypt-folder" type="button" class="btn btn-primary btn-block" disabled>Encrypt folder</button>
+
+            <div id="folder-progress-wrap" class="progress-block" hidden>
+              <div class="progress-track"><div id="folder-progress-bar" class="progress-fill"></div></div>
+              <p id="folder-progress-label" class="progress-label"></p>
+            </div>
+
+            <div id="folder-result-wrap" class="result-block" hidden>
+              <p id="folder-result-label" class="result-label"></p>
+              <button id="btn-download-folder-result" type="button" class="btn btn-secondary">
+                <svg class="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11"/><path d="M7.5 11.5 12 16l4.5-4.5"/><path d="M5 19.5h14"/></svg>
+                Download encrypted folder
+              </button>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2 class="section-heading">Decrypt a folder</h2>
+            <button id="btn-pick-folder-enc" type="button" class="btn btn-primary">
+              <svg class="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.2-2.6"/></svg>
+              Choose .enc file…
+            </button>
+            <input id="input-pick-folder-enc" type="file" accept=".enc" hidden>
+
+            <p id="folder-dec-summary" class="folder-summary" hidden></p>
+
+            <button id="btn-decrypt-folder" type="button" class="btn btn-primary btn-block" disabled>Decrypt folder</button>
+
+            <div id="folder-dec-progress-wrap" class="progress-block" hidden>
+              <div class="progress-track"><div id="folder-dec-progress-bar" class="progress-fill"></div></div>
+              <p id="folder-dec-progress-label" class="progress-label"></p>
+            </div>
+
+            <div id="folder-dec-result-wrap" class="result-block" hidden>
+              <p id="folder-dec-result-label" class="result-label"></p>
+              <button id="btn-download-folder-dec-result" type="button" class="btn btn-secondary">
+                <svg class="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11"/><path d="M7.5 11.5 12 16l4.5-4.5"/><path d="M5 19.5h14"/></svg>
+                Download .zip
+              </button>
+              <p class="hint-text">Extract this zip with your operating system's file manager to restore the original folder structure.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========================== TEXT ENCRYPTION =========================== -->
+      <section id="tab-text" data-tabpanel="text" class="tab-panel" role="tabpanel" aria-labelledby="navtab-text" hidden>
+        <div class="panel-header">
+          <h1>Text Encryption</h1>
+          <p class="panel-subtitle">Encrypt a message into Base64 ciphertext you can paste anywhere, or decrypt one you've received.</p>
+        </div>
+
+        <div class="text-columns">
+          <div class="card">
+            <h2 class="section-heading">Encrypt</h2>
+            <label class="field-label" for="text-plain-input">Your message</label>
+            <textarea id="text-plain-input" class="textarea" rows="8" placeholder="Type or paste text to encrypt…"></textarea>
+            <span id="text-input-char-count" class="char-count">0 characters</span>
+            <button id="btn-encrypt-text" type="button" class="btn btn-primary btn-block">Encrypt text</button>
+
+            <label class="field-label" for="text-cipher-output">Encrypted output (Base64)</label>
+            <textarea id="text-cipher-output" class="textarea textarea-mono" rows="6" readonly placeholder="Encrypted text will appear here…"></textarea>
+            <div class="field-actions">
+              <button id="btn-copy-cipher-output" type="button" class="btn btn-secondary">
+                <svg class="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true"><rect x="8.5" y="8.5" width="10.5" height="12" rx="1.5"/><path d="M15 8.5V6a1.5 1.5 0 0 0-1.5-1.5H6A1.5 1.5 0 0 0 4.5 6v10A1.5 1.5 0 0 0 6 17.5h2.5"/></svg>
+                Copy
+              </button>
+              <button id="btn-download-cipher-output" type="button" class="btn btn-secondary">
+                <svg class="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11"/><path d="M7.5 11.5 12 16l4.5-4.5"/><path d="M5 19.5h14"/></svg>
+                Download .txt
+              </button>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2 class="section-heading">Decrypt</h2>
+            <label class="field-label" for="text-cipher-input">Encrypted text (Base64)</label>
+            <textarea id="text-cipher-input" class="textarea textarea-mono" rows="8" placeholder="Paste encrypted Base64 text here…"></textarea>
+            <button id="btn-decrypt-text" type="button" class="btn btn-primary btn-block">Decrypt text</button>
+
+            <label class="field-label" for="text-plain-output">Decrypted output</label>
+            <textarea id="text-plain-output" class="textarea" rows="6" readonly placeholder="Decrypted text will appear here…"></textarea>
+            <div class="field-actions">
+              <button id="btn-copy-plain-output" type="button" class="btn btn-secondary">
+                <svg class="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true"><rect x="8.5" y="8.5" width="10.5" height="12" rx="1.5"/><path d="M15 8.5V6a1.5 1.5 0 0 0-1.5-1.5H6A1.5 1.5 0 0 0 4.5 6v10A1.5 1.5 0 0 0 6 17.5h2.5"/></svg>
+                Copy
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================= KEY MANAGER ============================= -->
+      <section id="tab-keys" data-tabpanel="keys" class="tab-panel" role="tabpanel" aria-labelledby="navtab-keys" hidden>
+        <div class="panel-header">
+          <h1>Key Manager</h1>
+          <p class="panel-subtitle">Keys are generated with the browser's secure random number generator and only ever live in this tab's memory — never saved, never sent anywhere.</p>
+        </div>
+
+        <div class="card key-card">
+          <div id="key-empty-state" class="key-empty-state">
+            <svg class="icon key-empty-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="15" r="3.4"/><path d="M10.4 12.4 19 3.8"/><path d="M15.6 7.8 18 10.2"/><path d="M13.1 6.4 15.1 8.4"/></svg>
+            <p>No key loaded yet.</p>
+            <button id="btn-generate-key" type="button" class="btn btn-primary">Generate a new AES-256 key</button>
+          </div>
+
+          <div id="key-loaded-state" class="key-loaded-state" hidden>
+            <div class="key-field-group">
+              <label class="field-label" for="key-base64-field">Base64</label>
+              <div class="key-field-row">
+                <input id="key-base64-field" class="input input-mono" type="text" readonly spellcheck="false">
+                <button id="btn-copy-key-base64" type="button" class="btn btn-icon-sm" aria-label="Copy Base64 key">
+                  <svg class="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true"><rect x="8.5" y="8.5" width="10.5" height="12" rx="1.5"/><path d="M15 8.5V6a1.5 1.5 0 0 0-1.5-1.5H6A1.5 1.5 0 0 0 4.5 6v10A1.5 1.5 0 0 0 6 17.5h2.5"/></svg>
+                </button>
+              </div>
+            </div>
+            <div class="key-field-group">
+              <label class="field-label" for="key-hex-field">Hex</label>
+              <div class="key-field-row">
+                <input id="key-hex-field" class="input input-mono" type="text" readonly spellcheck="false">
+                <button id="btn-copy-key-hex" type="button" class="btn btn-icon-sm" aria-label="Copy hex key">
+                  <svg class="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true"><rect x="8.5" y="8.5" width="10.5" height="12" rx="1.5"/><path d="M15 8.5V6a1.5 1.5 0 0 0-1.5-1.5H6A1.5 1.5 0 0 0 4.5 6v10A1.5 1.5 0 0 0 6 17.5h2.5"/></svg>
+                </button>
+              </div>
+            </div>
+
+            <div class="key-meta-row">
+              <div>
+                <span class="field-label">Fingerprint (SHA-256)</span>
+                <p id="key-fingerprint" class="key-fingerprint"></p>
+              </div>
+              <div>
+                <span class="field-label">Created this session</span>
+                <p id="key-created-at" class="key-created-at"></p>
+              </div>
+            </div>
+
+            <div class="key-actions">
+              <button id="btn-download-key" type="button" class="btn btn-secondary">
+                <svg class="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11"/><path d="M7.5 11.5 12 16l4.5-4.5"/><path d="M5 19.5h14"/></svg>
+                Download .key
+              </button>
+              <button id="btn-regenerate-key" type="button" class="btn btn-secondary">
+                <svg class="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12a7 7 0 0 1 12-4.9L19 9"/><path d="M19 5.2V9h-3.8"/><path d="M19 12a7 7 0 0 1-12 4.9L5 15"/><path d="M5 18.8V15h3.8"/></svg>
+                Regenerate
+              </button>
+              <button id="btn-clear-key" type="button" class="btn btn-ghost btn-danger-ghost">
+                <svg class="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14"/><path d="M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7"/><path d="M7 7l1 12.5a1 1 0 0 0 1 .9h6a1 1 0 0 0 1-.9L17 7"/></svg>
+                Clear
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2 class="section-heading">Import a key</h2>
+          <p class="hint-text">Accepts a downloaded <code>.key</code> file, or pasted Base64 / 64-character hex key material.</p>
+          <div class="key-actions">
+            <button id="btn-upload-key" type="button" class="btn btn-secondary">
+              <svg class="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20V9"/><path d="M7.5 12.5 12 8l4.5 4.5"/><path d="M5 19.5h14"/></svg>
+              Upload .key file
+            </button>
+            <input id="input-upload-key" type="file" accept=".key,.json,.txt" hidden>
+            <button id="btn-paste-key" type="button" class="btn btn-secondary">
+              <svg class="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5.5" width="12" height="15" rx="1.5"/><rect x="9" y="3.5" width="6" height="3" rx="1"/></svg>
+              Paste key
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- =============================== SETTINGS =============================== -->
+      <section id="tab-settings" data-tabpanel="settings" class="tab-panel" role="tabpanel" aria-labelledby="navtab-settings" hidden>
+        <div class="panel-header">
+          <h1>Settings</h1>
+        </div>
+
+        <div class="card">
+          <h2 class="section-heading">Appearance</h2>
+          <div class="field-label">Theme</div>
+          <div class="segmented-control" role="group" aria-label="Theme">
+            <button id="theme-btn-dark" type="button" class="segmented-btn" aria-pressed="false">
+              <svg class="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.3A8.4 8.4 0 1 1 9.7 4a6.8 6.8 0 0 0 10.3 10.3z"/></svg>
+              Dark
+            </button>
+            <button id="theme-btn-light" type="button" class="segmented-btn" aria-pressed="false">
+              <svg class="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 3v2.2M12 18.8V21M21 12h-2.2M5.2 12H3M18.4 5.6l-1.6 1.6M7.2 16.8l-1.6 1.6M18.4 18.4l-1.6-1.6M7.2 7.2 5.6 5.6"/></svg>
+              Light
+            </button>
+            <button id="theme-btn-system" type="button" class="segmented-btn" aria-pressed="false">
+              <svg class="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="11" rx="1.5"/><path d="M8.5 19.5h7M12 16v3.5"/></svg>
+              System
+            </button>
+          </div>
+
+          <label class="switch-row">
+            <span>Remember my theme choice</span>
+            <span class="switch"><input id="setting-remember-theme" type="checkbox" class="switch-input"><span class="switch-track" aria-hidden="true"></span></span>
+          </label>
+          <label class="switch-row">
+            <span>High contrast mode</span>
+            <span class="switch"><input id="setting-high-contrast" type="checkbox" class="switch-input"><span class="switch-track" aria-hidden="true"></span></span>
+          </label>
+        </div>
+
+        <div class="card">
+          <h2 class="section-heading">Behavior</h2>
+          <label class="switch-row">
+            <span>Automatically download results when finished</span>
+            <span class="switch"><input id="setting-auto-download" type="checkbox" class="switch-input"><span class="switch-track" aria-hidden="true"></span></span>
+          </label>
+          <label class="switch-row">
+            <span>Confirm before replacing the current key</span>
+            <span class="switch"><input id="setting-confirm-overwrite" type="checkbox" class="switch-input"><span class="switch-track" aria-hidden="true"></span></span>
+          </label>
+          <label class="switch-row">
+            <span>Show file type metadata in file lists</span>
+            <span class="switch"><input id="setting-show-metadata" type="checkbox" class="switch-input"><span class="switch-track" aria-hidden="true"></span></span>
+          </label>
+        </div>
+
+        <div class="card">
+          <h2 class="section-heading">Performance</h2>
+          <label class="field-label" for="setting-chunk-size">Chunk size for large files</label>
+          <select id="setting-chunk-size" class="select">
+            <option value="4">4 MB — lowest memory use</option>
+            <option value="16">16 MB — balanced (recommended)</option>
+            <option value="64">64 MB — fastest for very large files</option>
+          </select>
+          <p class="hint-text">Files are encrypted in independently-authenticated chunks so large files never need to fit in memory all at once, and the page never freezes.</p>
+        </div>
+      </section>
+
+      <!-- ================================= ABOUT ================================= -->
+      <section id="tab-about" data-tabpanel="about" class="tab-panel" role="tabpanel" aria-labelledby="navtab-about" hidden>
+        <div class="panel-header">
+          <h1>About SecureVault</h1>
+          <p class="panel-subtitle">Version <span data-app-version>1.0.0</span> · Container format v<span data-format-version>1</span></p>
+        </div>
+
+        <div class="card">
+          <h2 class="section-heading">How it works</h2>
+          <p>SecureVault generates a random 256-bit key using your browser's cryptographically secure random number generator, then encrypts your data with AES-256-GCM through the native Web Crypto API. Large files and folders are split into independently-authenticated chunks so nothing needs to fit entirely in memory and the page stays responsive. Every chunk is bound to the file's header, so tampering with the filename, reordering chunks, or truncating the file is detected automatically.</p>
+        </div>
+
+        <div class="card">
+          <h2 class="section-heading">Your privacy</h2>
+          <ul class="status-list">
+            <li><svg class="icon icon-sm status-ok" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.3"/><path d="M8.3 12.3l2.4 2.4 4.7-5.3"/></svg> No servers, no accounts, no network requests of any kind</li>
+            <li><svg class="icon icon-sm status-ok" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.3"/><path d="M8.3 12.3l2.4 2.4 4.7-5.3"/></svg> No analytics or telemetry</li>
+            <li><svg class="icon icon-sm status-ok" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.3"/><path d="M8.3 12.3l2.4 2.4 4.7-5.3"/></svg> Keys live only in this tab's memory — never written to disk or storage</li>
+            <li><svg class="icon icon-sm status-ok" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.3"/><path d="M8.3 12.3l2.4 2.4 4.7-5.3"/></svg> Only non-sensitive settings (like theme) are ever saved, and only on your device</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h2 class="section-heading">FAQ</h2>
+          <div class="faq">
+            <div class="faq-item">
+              <button class="faq-question" aria-expanded="false" aria-controls="faq-answer-1">
+                <span>What happens if I lose my key?</span>
+                <svg class="icon icon-sm faq-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+              </button>
+              <div class="faq-answer" id="faq-answer-1" hidden>
+                <p>Your data is permanently unrecoverable. SecureVault has no backdoor, no password reset, and no way to contact anyone for help — that's the point of real encryption. Always save your key (download it or copy it somewhere safe) before closing the tab.</p>
+              </div>
+            </div>
+            <div class="faq-item">
+              <button class="faq-question" aria-expanded="false" aria-controls="faq-answer-2">
+                <span>Has this been independently security-audited?</span>
+                <svg class="icon icon-sm faq-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+              </button>
+              <div class="faq-answer" id="faq-answer-2" hidden>
+                <p>No. SecureVault delegates all actual cryptography to your browser's built-in, independently-audited Web Crypto API — it never implements its own cipher — but the application code itself has not been through a formal third-party audit. For protecting extremely high-stakes secrets, consider pairing this with (or using instead) a long-established, independently audited tool.</p>
+              </div>
+            </div>
+            <div class="faq-item">
+              <button class="faq-question" aria-expanded="false" aria-controls="faq-answer-3">
+                <span>Why generate a random key instead of using a password?</span>
+                <svg class="icon icon-sm faq-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+              </button>
+              <div class="faq-answer" id="faq-answer-3" hidden>
+                <p>A random 256-bit key has vastly more entropy than almost any password a person can remember, so SecureVault generates one for you instead of deriving a key from a typed password. The trade-off is that the key file itself becomes the thing you must protect and back up, exactly like a password.</p>
+              </div>
+            </div>
+            <div class="faq-item">
+              <button class="faq-question" aria-expanded="false" aria-controls="faq-answer-4">
+                <span>Can I use this on my phone?</span>
+                <svg class="icon icon-sm faq-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+              </button>
+              <div class="faq-answer" id="faq-answer-4" hidden>
+                <p>Yes — the interface is fully responsive and works in any modern mobile browser that supports the Web Crypto API. Very large files may be limited by your device's available memory.</p>
+              </div>
+            </div>
+            <div class="faq-item">
+              <button class="faq-question" aria-expanded="false" aria-controls="faq-answer-5">
+                <span>Why aren't folders compressed smaller?</span>
+                <svg class="icon icon-sm faq-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+              </button>
+              <div class="faq-answer" id="faq-answer-5" hidden>
+                <p>Folders are packed into a standard, uncompressed (Store-method) .zip before encryption. This keeps the whole app dependency-free and avoids introducing a complex compression implementation into a security tool, at the cost of larger archives for already-compressible content. The resulting .zip still opens in any standard unzip tool.</p>
+              </div>
+            </div>
+            <div class="faq-item">
+              <button class="faq-question" aria-expanded="false" aria-controls="faq-answer-6">
+                <span>Does SecureVault work without an internet connection?</span>
+                <svg class="icon icon-sm faq-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+              </button>
+              <div class="faq-answer" id="faq-answer-6" hidden>
+                <p>Yes, entirely. Once this page has loaded, you can disconnect from the internet completely and every feature keeps working — encryption, decryption, key management, all of it.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2 class="section-heading">Keyboard shortcuts</h2>
+          <dl class="shortcuts-list">
+            <dt>Alt + 1 – 7</dt><dd>Switch tabs</dd>
+            <dt>Ctrl / Cmd + G</dt><dd>Generate a new key</dd>
+            <dt>Ctrl / Cmd + O</dt><dd>Browse for files</dd>
+            <dt>Ctrl / Cmd + D</dt><dd>Toggle dark / light theme</dd>
+            <dt>?</dt><dd>Show the shortcuts list</dd>
+            <dt>Esc</dt><dd>Close a dialog</dd>
+          </dl>
+        </div>
+
+        <p class="footer-note">© <span data-current-year>2026</span> SecureVault. Open, offline, and free. No ads, no tracking, no accounts.</p>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="false"></div>
+<div id="modal-root"></div>
+
+<script src="utils.js"></script>
+<script src="crypto.js"></script>
+<script src="keyManager.js"></script>
+<script src="file.js"></script>
+<script src="folder.js"></script>
+<script src="text.js"></script>
+<script src="ui.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
